@@ -478,11 +478,6 @@
     <span style="color:var(--text3);font-size:12px">slide</span>
   </div>
   <div class="topbar-actions">
-    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('jsonImport').click()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Import JSON
-    </button>
-    <input type="file" id="jsonImport" accept=".json" style="display:none" onchange="importJSON(this)">
     <button class="btn btn-ghost btn-sm" onclick="previewFullscreen()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
       Preview
@@ -569,26 +564,6 @@
       <div class="field">
         <label>Nama Brand</label>
         <input type="text" id="brandName" placeholder="Nama Perusahaan" value="SlideForge" oninput="updateDesign()">
-      </div>
-
-      <div class="section-header">Pengaturan Logo</div>
-      <div class="field">
-        <label>Ukuran Logo (px)</label>
-        <div class="range-row">
-          <input type="range" min="20" max="80" value="28" id="logoSize" oninput="updateDesign();document.getElementById('logoSizeVal').textContent=this.value+'px'">
-          <span class="range-val" id="logoSizeVal">28px</span>
-        </div>
-      </div>
-      <div class="field">
-        <label>Posisi Logo</label>
-        <select id="logoPosition" onchange="updateDesign()">
-          <option value="top-left">Atas - Kiri</option>
-          <option value="top-center">Atas - Tengah</option>
-          <option value="top-right">Atas - Kanan</option>
-          <option value="bottom-left">Bawah - Kiri</option>
-          <option value="bottom-center">Bawah - Tengah</option>
-          <option value="bottom-right">Bawah - Kanan</option>
-        </select>
       </div>
 
       <div class="section-header">Warna</div>
@@ -765,8 +740,6 @@ const state = {
     bgTheme: 'dark',
     fontFamily: 'modern',
     titleSize: 48,
-    logoSize: 28,
-    logoPosition: 'top-left',
     slideNumbers: true,
     showLogo: true,
     progressBar: true,
@@ -889,8 +862,6 @@ function updateDesign() {
   d.logoUrl = document.getElementById('logoUrl').value;
   d.brandName = document.getElementById('brandName').value;
   d.titleSize = +document.getElementById('titleSize').value;
-  d.logoSize = +document.getElementById('logoSize').value;
-  d.logoPosition = document.getElementById('logoPosition').value;
   document.getElementById('colorPrimaryHex').textContent = d.colorPrimary;
   document.getElementById('colorSecondaryHex').textContent = d.colorSecondary;
   document.getElementById('gradientStrip').style.background = `linear-gradient(90deg, ${d.colorPrimary}, ${d.colorSecondary})`;
@@ -979,15 +950,6 @@ function generateSlideHTML(slide, idx, total, d, a, standalone=false) {
   const contentAnim = a.content;
   const animClass = contentAnim !== 'none' ? contentAnim : '';
 
-  // Logo position CSS
-  let logoPosCss = '';
-  if (d.logoPosition === 'top-left') logoPosCss = 'top:0;left:0;right:auto;bottom:auto;justify-content:flex-start;';
-  else if (d.logoPosition === 'top-center') logoPosCss = 'top:0;left:50%;transform:translateX(-50%);justify-content:center;';
-  else if (d.logoPosition === 'top-right') logoPosCss = 'top:0;right:0;left:auto;bottom:auto;justify-content:flex-end;';
-  else if (d.logoPosition === 'bottom-left') logoPosCss = 'bottom:0;left:0;right:auto;top:auto;justify-content:flex-start;';
-  else if (d.logoPosition === 'bottom-center') logoPosCss = 'bottom:0;left:50%;transform:translateX(-50%);justify-content:center;';
-  else if (d.logoPosition === 'bottom-right') logoPosCss = 'bottom:0;right:0;left:auto;top:auto;justify-content:flex-end;';
-
   const animCSS = `
     @keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
     @keyframes riseUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
@@ -1065,8 +1027,8 @@ function generateSlideHTML(slide, idx, total, d, a, standalone=false) {
     <div class="deco-orb deco-1" style="background:radial-gradient(circle,${p}33,transparent 70%)"></div>
     <div class="deco-orb deco-2" style="background:radial-gradient(circle,${s}22,transparent 70%)"></div>
   ` : '';
-  const logoStyle = `height:${d.logoSize}px;max-width:${d.logoSize*4}px;object-fit:contain;filter:${isLight?'none':'brightness(1.1)'};`;
-  const logoHTML = d.showLogo && d.logoUrl ? `<img src="${d.logoUrl}" class="slide-logo" alt="logo" style="${logoStyle}" onerror="this.style.display='none'">` : (d.showLogo ? `<span class="slide-brand-text" style="color:${p};font-size:${Math.round(d.logoSize*0.5)}px">${d.brandName}</span>` : '');
+
+  const logoHTML = d.showLogo && d.logoUrl ? `<img src="${d.logoUrl}" class="slide-logo" alt="logo" onerror="this.style.display='none'">` : (d.showLogo ? `<span class="slide-brand-text" style="color:${p}">${d.brandName}</span>` : '');
   const numHTML = d.slideNumbers ? `<div class="slide-number" style="color:${textMuted}">${idx+1} / ${total}</div>` : '';
   const progressHTML = d.progressBar ? `<div class="progress-bar"><div class="progress-fill" style="width:${progress}%;background:linear-gradient(90deg,${p},${s})"></div></div>` : '';
 
@@ -1089,7 +1051,7 @@ ${animCSS}
 .deco-orb{position:absolute;border-radius:50%;pointer-events:none}
 .deco-1{width:50vw;height:50vw;top:-15vw;right:-10vw;opacity:0.6}
 .deco-2{width:40vw;height:40vw;bottom:-12vw;left:-8vw;opacity:0.5}
-.slide-chrome{position:absolute;display:flex;align-items:center;padding:16px 28px;z-index:10;${logoPosCss}}
+.slide-chrome{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:16px 28px;z-index:10}
 .slide-logo{height:28px;max-width:120px;object-fit:contain;filter:${isLight?'none':'brightness(1.1)'};}
 .slide-brand-text{font-size:14px;font-weight:600;letter-spacing:-0.3px}
 .slide-number{font-size:12px;font-weight:500;opacity:0.5}
