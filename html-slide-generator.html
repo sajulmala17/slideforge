@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Slide Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f11;
+    --bg2: #18181c;
+    --bg3: #222228;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0eff4;
+    --text2: #9896a8;
+    --text3: #65636e;
+    --accent: #7c6af7;
+    --accent2: #a89bf9;
+    --accent-bg: rgba(124,106,247,0.12);
+    --success: #3ecf8e;
+    --warn: #f5a623;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 52px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+    gap: 12px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #7c6af7, #a89bf9);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .topbar-center {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text2);
+  }
+  .slide-counter {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text2);
+  }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #6a58e5; transform: translateY(-1px); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* PANEL */
+  .panel {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 8px;
+    font-size: 12px; font-weight: 500;
+    background: none; border: none;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    font-family: var(--font);
+  }
+  .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); background: var(--accent-bg); }
+  .tab-btn:hover:not(.active) { color: var(--text2); }
+
+  .tab-content { display: none; flex: 1; overflow-y: auto; padding: 16px; }
+  .tab-content.active { display: block; }
+  .tab-content::-webkit-scrollbar { width: 4px; }
+  .tab-content::-webkit-scrollbar-track { background: transparent; }
+  .tab-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* FORM ELEMENTS */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 11px; font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+  .field input[type=text],
+  .field input[type=url],
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 8px 10px;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--accent);
+  }
+  .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .field select { cursor: pointer; }
+
+  /* Color pickers */
+  .color-row { display: flex; gap: 8px; }
+  .color-field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+  }
+  .color-field input[type=color] {
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    border: none; padding: 0;
+    cursor: pointer;
+    background: none;
+    flex-shrink: 0;
+  }
+  .color-field span { font-size: 12px; font-family: var(--mono); color: var(--text2); }
+
+  /* Section divider */
+  .section-header {
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text3);
+    padding: 10px 0 6px;
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+  }
+  .section-header:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
+  /* Slide list */
+  .slide-list { display: flex; flex-direction: column; gap: 6px; }
+  .slide-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .slide-item.active { border-color: var(--accent); background: var(--accent-bg); }
+  .slide-item:hover:not(.active) { border-color: var(--border2); }
+  .slide-num {
+    width: 20px; height: 20px;
+    background: var(--border);
+    border-radius: 4px;
+    font-size: 10px; font-family: var(--mono);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text3); flex-shrink: 0;
+  }
+  .slide-item.active .slide-num { background: var(--accent); color: #fff; }
+  .slide-title-preview { font-size: 12px; color: var(--text2); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .slide-type-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+  .slide-del {
+    background: none; border: none;
+    color: var(--text3); cursor: pointer;
+    padding: 2px; border-radius: 4px;
+    font-size: 14px; line-height: 1;
+    display: none;
+    transition: color 0.15s;
+  }
+  .slide-item:hover .slide-del { display: flex; }
+  .slide-del:hover { color: #ff6b6b; }
+
+  .add-slide-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: none;
+    border: 1px dashed var(--border2);
+    border-radius: 8px;
+    color: var(--text3);
+    font-size: 12px; font-family: var(--font);
+    cursor: pointer; width: 100%;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+  .add-slide-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* Slide type selector */
+  .slide-type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .type-opt {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 11px; color: var(--text2);
+    transition: all 0.15s;
+  }
+  .type-opt.active { border-color: var(--accent); color: var(--accent2); background: var(--accent-bg); }
+  .type-opt:hover:not(.active) { border-color: var(--border2); }
+  .type-icon { font-size: 16px; margin-bottom: 3px; }
+
+  /* PREVIEW AREA */
+  .preview-area {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+    gap: 10px;
+  }
+  .preview-nav { display: flex; gap: 6px; align-items: center; }
+  .nav-btn {
+    width: 28px; height: 28px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover:not(:disabled) { border-color: var(--border2); color: var(--text); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .preview-frame-wrap {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: repeating-conic-gradient(rgba(255,255,255,0.02) 0% 25%, transparent 0% 50%) 0 0/20px 20px;
+  }
+  .preview-scale-wrap {
+    width: 100%;
+    max-width: 900px;
+    aspect-ratio: 16/9;
+    position: relative;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  #slidePreview {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  /* ANIMATION OPTIONS */
+  .anim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .anim-opt {
+    padding: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text2);
+    transition: all 0.15s;
+  }
+  .anim-opt.active { border-color: var(--accent); color: var(--accent2); background: var(--accent-bg); }
+  .anim-opt:hover:not(.active) { border-color: var(--border2); }
+
+  /* Range input */
+  .range-row { display: flex; align-items: center; gap: 8px; }
+  .range-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+  .range-val { font-size: 12px; font-family: var(--mono); color: var(--text2); min-width: 32px; text-align: right; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: #1a1a20;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 999;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 16px; }
+
+  /* Toggle switch */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; }
+  .toggle-label { font-size: 13px; color: var(--text2); }
+  .toggle {
+    width: 36px; height: 20px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); border-color: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px; left: 2px;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(16px); }
+
+  /* Scrollbar for panel */
+  .panel-body { flex: 1; overflow-y: auto; }
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Font family selector */
+  .font-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .font-opt {
+    padding: 8px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text2);
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .font-opt.active { border-color: var(--accent); color: var(--accent2); background: var(--accent-bg); }
+  .font-opt:hover:not(.active) { border-color: var(--border2); }
+
+  .help-text { font-size: 11px; color: var(--text3); margin-top: 4px; line-height: 1.5; }
+
+  /* Gradient preview strip */
+  .gradient-strip {
+    height: 4px;
+    border-radius: 2px;
+    margin-bottom: 14px;
+    transition: background 0.3s;
+  }
+
+  /* Miniature slide thumbnails */
+  .thumb-preview {
+    aspect-ratio: 16/9;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text3);
+    background: var(--bg3);
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">◈</div>
+    SlideForge
+  </div>
+  <div class="topbar-center">
+    <span class="slide-counter" id="slideCounter">1 / 1</span>
+    <span style="color:var(--text3);font-size:12px">slide</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" onclick="previewFullscreen()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      Preview
+    </button>
+    <button class="btn btn-primary btn-sm" onclick="exportHTML()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export HTML
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- LEFT PANEL -->
+  <div class="panel">
+    <div class="panel-tabs">
+      <button class="tab-btn active" onclick="switchTab('slides')">Slides</button>
+      <button class="tab-btn" onclick="switchTab('content')">Konten</button>
+      <button class="tab-btn" onclick="switchTab('design')">Desain</button>
+      <button class="tab-btn" onclick="switchTab('anim')">Animasi</button>
+    </div>
+
+    <!-- TAB: SLIDES -->
+    <div class="tab-content active" id="tab-slides">
+      <div class="slide-list" id="slideList"></div>
+      <button class="add-slide-btn" onclick="addSlide()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Tambah Slide
+      </button>
+    </div>
+
+    <!-- TAB: CONTENT -->
+    <div class="tab-content" id="tab-content">
+      <div class="section-header">Tipe Slide</div>
+      <div class="slide-type-grid" id="typeGrid">
+        <div class="type-opt active" data-type="cover" onclick="setSlideType('cover')">
+          <div class="type-icon">🎯</div>Cover
+        </div>
+        <div class="type-opt" data-type="title" onclick="setSlideType('title')">
+          <div class="type-icon">📋</div>Judul
+        </div>
+        <div class="type-opt" data-type="bullets" onclick="setSlideType('bullets')">
+          <div class="type-icon">📌</div>Poin
+        </div>
+        <div class="type-opt" data-type="two-col" onclick="setSlideType('two-col')">
+          <div class="type-icon">⬛</div>2 Kolom
+        </div>
+        <div class="type-opt" data-type="quote" onclick="setSlideType('quote')">
+          <div class="type-icon">💬</div>Kutipan
+        </div>
+        <div class="type-opt" data-type="closing" onclick="setSlideType('closing')">
+          <div class="type-icon">🏁</div>Penutup
+        </div>
+      </div>
+
+      <div class="section-header">Konten</div>
+      <div class="field">
+        <label>Judul</label>
+        <input type="text" id="slideTitle" placeholder="Judul slide..." oninput="updateCurrentSlide()">
+      </div>
+      <div class="field">
+        <label>Subjudul / Deskripsi</label>
+        <textarea id="slideSubtitle" placeholder="Deskripsi atau poin-poin (pisahkan dengan baris baru)" rows="4" oninput="updateCurrentSlide()"></textarea>
+        <div class="help-text">Untuk poin: mulai dengan "• " atau "- " di setiap baris</div>
+      </div>
+      <div class="field" id="col2Field" style="display:none">
+        <label>Kolom Kanan</label>
+        <textarea id="slideCol2" placeholder="Konten kolom kanan..." rows="3" oninput="updateCurrentSlide()"></textarea>
+      </div>
+      <div class="field">
+        <label>Catatan Speaker</label>
+        <textarea id="slideSpeaker" placeholder="Catatan untuk presenter (tidak tampil di slide)..." rows="2" oninput="updateCurrentSlide()"></textarea>
+      </div>
+    </div>
+
+    <!-- TAB: DESIGN -->
+    <div class="tab-content" id="tab-design">
+      <div class="section-header">Brand Identity</div>
+      <div class="field">
+        <label>URL Logo</label>
+        <input type="url" id="logoUrl" placeholder="https://example.com/logo.png" oninput="updateDesign()">
+        <div class="help-text">Masukkan URL gambar logo Anda</div>
+      </div>
+      <div class="field">
+        <label>Nama Brand</label>
+        <input type="text" id="brandName" placeholder="Nama Perusahaan" value="SlideForge" oninput="updateDesign()">
+      </div>
+
+      <div class="section-header">Warna</div>
+      <div class="gradient-strip" id="gradientStrip"></div>
+      <div class="color-row">
+        <div class="color-field">
+          <input type="color" id="colorPrimary" value="#7c6af7" oninput="updateDesign()">
+          <span id="colorPrimaryHex">#7c6af7</span>
+        </div>
+        <div class="color-field">
+          <input type="color" id="colorSecondary" value="#06b6d4" oninput="updateDesign()">
+          <span id="colorSecondaryHex">#06b6d4</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--text3)">Primary</span>
+        <span style="flex:1"></span>
+        <span style="font-size:11px;color:var(--text3)">Secondary</span>
+      </div>
+
+      <div class="field">
+        <label>Warna Background Slide</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="anim-opt active" style="font-size:12px;padding:6px 10px" data-bg="dark" onclick="setBg('dark',this)">🌑 Dark</div>
+          <div class="anim-opt" style="font-size:12px;padding:6px 10px" data-bg="light" onclick="setBg('light',this)">☀️ Light</div>
+          <div class="anim-opt" style="font-size:12px;padding:6px 10px" data-bg="gradient" onclick="setBg('gradient',this)">🌈 Gradient</div>
+          <div class="anim-opt" style="font-size:12px;padding:6px 10px" data-bg="glass" onclick="setBg('glass',this)">🔮 Glass</div>
+        </div>
+      </div>
+
+      <div class="section-header">Tipografi</div>
+      <div class="font-grid">
+        <div class="font-opt active" data-font="modern" onclick="setFont('modern',this)" style="font-family:'DM Sans',sans-serif">DM Sans</div>
+        <div class="font-opt" data-font="serif" onclick="setFont('serif',this)" style="font-family:'Georgia',serif">Georgia</div>
+        <div class="font-opt" data-font="mono" onclick="setFont('mono',this)" style="font-family:'Courier New',monospace">Mono</div>
+        <div class="font-opt" data-font="display" onclick="setFont('display',this)" style="font-family:'Impact',sans-serif">Display</div>
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label>Ukuran Judul</label>
+        <div class="range-row">
+          <input type="range" min="28" max="72" value="48" id="titleSize" oninput="updateDesign();document.getElementById('titleSizeVal').textContent=this.value+'px'">
+          <span class="range-val" id="titleSizeVal">48px</span>
+        </div>
+      </div>
+
+      <div class="section-header">Layout</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Tampilkan nomor slide</span>
+        <div class="toggle on" id="toggleSlideNum" onclick="toggleOption('slideNumbers')"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Tampilkan logo</span>
+        <div class="toggle on" id="toggleLogo" onclick="toggleOption('showLogo')"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Progress bar</span>
+        <div class="toggle on" id="toggleProgress" onclick="toggleOption('progressBar')"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Elemen dekoratif</span>
+        <div class="toggle on" id="toggleDeco" onclick="toggleOption('decorative')"></div>
+      </div>
+    </div>
+
+    <!-- TAB: ANIMATION -->
+    <div class="tab-content" id="tab-anim">
+      <div class="section-header">Transisi Slide</div>
+      <div class="anim-grid">
+        <div class="anim-opt active" data-anim="fade" onclick="setAnim(this,'transition')">🌫️ Fade</div>
+        <div class="anim-opt" data-anim="slide" onclick="setAnim(this,'transition')">➡️ Slide</div>
+        <div class="anim-opt" data-anim="zoom" onclick="setAnim(this,'transition')">🔍 Zoom</div>
+        <div class="anim-opt" data-anim="flip" onclick="setAnim(this,'transition')">🔄 Flip</div>
+        <div class="anim-opt" data-anim="reveal" onclick="setAnim(this,'transition')">✨ Reveal</div>
+        <div class="anim-opt" data-anim="none" onclick="setAnim(this,'transition')">⬛ None</div>
+      </div>
+
+      <div class="section-header">Animasi Konten</div>
+      <div class="anim-grid">
+        <div class="anim-opt active" data-anim2="stagger" onclick="setAnim(this,'content')">📽️ Stagger</div>
+        <div class="anim-opt" data-anim2="rise" onclick="setAnim(this,'content')">⬆️ Rise Up</div>
+        <div class="anim-opt" data-anim2="pop" onclick="setAnim(this,'content')">💥 Pop</div>
+        <div class="anim-opt" data-anim2="none" onclick="setAnim(this,'content')">— None</div>
+      </div>
+
+      <div class="section-header">Timing</div>
+      <div class="field">
+        <label>Durasi Transisi</label>
+        <div class="range-row">
+          <input type="range" min="200" max="1200" step="50" value="500" id="transDuration"
+            oninput="state.animation.duration=+this.value;document.getElementById('transDurVal').textContent=this.value+'ms';renderPreview()">
+          <span class="range-val" id="transDurVal">500ms</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Auto-advance (detik, 0 = manual)</label>
+        <div class="range-row">
+          <input type="range" min="0" max="30" step="1" value="0" id="autoAdvance"
+            oninput="state.animation.autoAdvance=+this.value;document.getElementById('autoAdvVal').textContent=this.value===0?'Manual':this.value+'s';renderPreview()">
+          <span class="range-val" id="autoAdvVal">Manual</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-area">
+    <div class="preview-toolbar">
+      <div class="preview-nav">
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled title="Slide sebelumnya">‹</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" title="Slide berikutnya">›</button>
+      </div>
+      <div style="font-size:12px;color:var(--text3)">Live Preview — perubahan tampil instan</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="duplicateCurrentSlide()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Duplikat
+        </button>
+      </div>
+    </div>
+    <div class="preview-frame-wrap">
+      <div class="preview-scale-wrap">
+        <iframe id="slidePreview" title="Slide Preview"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon">✅</span>
+  <span id="toastMsg">File berhasil diunduh!</span>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  currentSlide: 0,
+  slides: [
+    {
+      type: 'cover',
+      title: 'Judul Presentasi Anda',
+      subtitle: 'Deskripsi singkat tentang presentasi ini\nNama Pembuat · 2025',
+      col2: '',
+      speaker: ''
+    },
+    {
+      type: 'bullets',
+      title: 'Poin-Poin Utama',
+      subtitle: '• Poin pertama yang ingin disampaikan\n• Poin kedua dengan penjelasan singkat\n• Poin ketiga yang mendukung argumen\n• Kesimpulan dari semua poin',
+      col2: '',
+      speaker: ''
+    },
+    {
+      type: 'quote',
+      title: '"Desain bukan hanya tampilan — desain adalah cara kerja."',
+      subtitle: '— Steve Jobs',
+      col2: '',
+      speaker: ''
+    },
+    {
+      type: 'closing',
+      title: 'Terima Kasih',
+      subtitle: 'Ada pertanyaan?\nhello@company.com',
+      col2: '',
+      speaker: ''
+    }
+  ],
+  design: {
+    colorPrimary: '#7c6af7',
+    colorSecondary: '#06b6d4',
+    logoUrl: '',
+    brandName: 'SlideForge',
+    bgTheme: 'dark',
+    fontFamily: 'modern',
+    titleSize: 48,
+    slideNumbers: true,
+    showLogo: true,
+    progressBar: true,
+    decorative: true
+  },
+  animation: {
+    transition: 'fade',
+    content: 'stagger',
+    duration: 500,
+    autoAdvance: 0
+  }
+};
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['slides','content','design','anim'];
+    b.classList.toggle('active', tabs[i] === id);
+  });
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ─── SLIDE MANAGEMENT ─────────────────────────────────────────────────────────
+function addSlide(type='title') {
+  state.slides.push({ type, title: 'Slide Baru', subtitle: '', col2: '', speaker: '' });
+  state.currentSlide = state.slides.length - 1;
+  renderSlideList();
+  loadSlideToEditor();
+  renderPreview();
+}
+
+function deleteSlide(i, e) {
+  e.stopPropagation();
+  if (state.slides.length <= 1) { showToast('Minimal satu slide diperlukan', '⚠️'); return; }
+  state.slides.splice(i, 1);
+  if (state.currentSlide >= state.slides.length) state.currentSlide = state.slides.length - 1;
+  renderSlideList();
+  loadSlideToEditor();
+  renderPreview();
+}
+
+function selectSlide(i) {
+  state.currentSlide = i;
+  renderSlideList();
+  loadSlideToEditor();
+  renderPreview();
+}
+
+function duplicateCurrentSlide() {
+  const clone = JSON.parse(JSON.stringify(state.slides[state.currentSlide]));
+  clone.title += ' (Salinan)';
+  state.slides.splice(state.currentSlide + 1, 0, clone);
+  state.currentSlide++;
+  renderSlideList();
+  loadSlideToEditor();
+  renderPreview();
+}
+
+function navigate(dir) {
+  const next = state.currentSlide + dir;
+  if (next < 0 || next >= state.slides.length) return;
+  state.currentSlide = next;
+  renderSlideList();
+  loadSlideToEditor();
+  renderPreview();
+}
+
+function renderSlideList() {
+  const list = document.getElementById('slideList');
+  list.innerHTML = state.slides.map((s, i) => `
+    <div class="slide-item ${i === state.currentSlide ? 'active' : ''}" onclick="selectSlide(${i})">
+      <div class="slide-num">${i+1}</div>
+      <span class="slide-title-preview">${s.title || 'Untitled'}</span>
+      <span class="slide-type-badge">${s.type}</span>
+      <button class="slide-del" onclick="deleteSlide(${i},event)" title="Hapus">✕</button>
+    </div>
+  `).join('');
+  document.getElementById('slideCounter').textContent = `${state.currentSlide+1} / ${state.slides.length}`;
+  document.getElementById('prevBtn').disabled = state.currentSlide === 0;
+  document.getElementById('nextBtn').disabled = state.currentSlide === state.slides.length - 1;
+}
+
+// ─── EDITOR ───────────────────────────────────────────────────────────────────
+function loadSlideToEditor() {
+  const s = state.slides[state.currentSlide];
+  document.getElementById('slideTitle').value = s.title || '';
+  document.getElementById('slideSubtitle').value = s.subtitle || '';
+  document.getElementById('slideCol2').value = s.col2 || '';
+  document.getElementById('slideSpeaker').value = s.speaker || '';
+  document.querySelectorAll('#typeGrid .type-opt').forEach(el => {
+    el.classList.toggle('active', el.dataset.type === s.type);
+  });
+  document.getElementById('col2Field').style.display = s.type === 'two-col' ? 'block' : 'none';
+}
+
+function updateCurrentSlide() {
+  const s = state.slides[state.currentSlide];
+  s.title = document.getElementById('slideTitle').value;
+  s.subtitle = document.getElementById('slideSubtitle').value;
+  s.col2 = document.getElementById('slideCol2').value;
+  s.speaker = document.getElementById('slideSpeaker').value;
+  renderSlideList();
+  renderPreview();
+}
+
+function setSlideType(type) {
+  state.slides[state.currentSlide].type = type;
+  document.querySelectorAll('#typeGrid .type-opt').forEach(el => el.classList.toggle('active', el.dataset.type === type));
+  document.getElementById('col2Field').style.display = type === 'two-col' ? 'block' : 'none';
+  renderSlideList();
+  renderPreview();
+}
+
+// ─── DESIGN ───────────────────────────────────────────────────────────────────
+function updateDesign() {
+  const d = state.design;
+  d.colorPrimary = document.getElementById('colorPrimary').value;
+  d.colorSecondary = document.getElementById('colorSecondary').value;
+  d.logoUrl = document.getElementById('logoUrl').value;
+  d.brandName = document.getElementById('brandName').value;
+  d.titleSize = +document.getElementById('titleSize').value;
+  document.getElementById('colorPrimaryHex').textContent = d.colorPrimary;
+  document.getElementById('colorSecondaryHex').textContent = d.colorSecondary;
+  document.getElementById('gradientStrip').style.background = `linear-gradient(90deg, ${d.colorPrimary}, ${d.colorSecondary})`;
+  renderPreview();
+}
+
+function setBg(theme, el) {
+  state.design.bgTheme = theme;
+  document.querySelectorAll('[data-bg]').forEach(e => e.classList.toggle('active', e.dataset.bg === theme));
+  renderPreview();
+}
+
+function setFont(font, el) {
+  state.design.fontFamily = font;
+  document.querySelectorAll('[data-font]').forEach(e => e.classList.toggle('active', e.dataset.font === font));
+  renderPreview();
+}
+
+function toggleOption(key) {
+  state.design[key] = !state.design[key];
+  const ids = { slideNumbers:'toggleSlideNum', showLogo:'toggleLogo', progressBar:'toggleProgress', decorative:'toggleDeco' };
+  document.getElementById(ids[key]).classList.toggle('on', state.design[key]);
+  renderPreview();
+}
+
+// ─── ANIMATION ────────────────────────────────────────────────────────────────
+function setAnim(el, group) {
+  const key = group === 'transition' ? 'transition' : 'content';
+  const val = group === 'transition' ? el.dataset.anim : el.dataset.anim2;
+  state.animation[key] = val;
+  const attr = group === 'transition' ? 'data-anim' : 'data-anim2';
+  document.querySelectorAll(`[${attr}]`).forEach(e => e.classList.toggle('active', e === el));
+  renderPreview();
+}
+
+// ─── RENDER PREVIEW ───────────────────────────────────────────────────────────
+function getFontStack(f) {
+  const fonts = {
+    modern: "'DM Sans', 'Segoe UI', sans-serif",
+    serif: "'Georgia', 'Times New Roman', serif",
+    mono: "'Courier New', Courier, monospace",
+    display: "'Impact', 'Arial Black', sans-serif"
+  };
+  return fonts[f] || fonts.modern;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+function renderBullets(text) {
+  return text.split('\n').map(line => {
+    const clean = line.replace(/^[•\-]\s*/, '').trim();
+    if (!clean) return '';
+    const isBullet = /^[•\-]/.test(line.trim());
+    return isBullet
+      ? `<div class="bullet-item"><span class="bullet-dot"></span><span>${clean}</span></div>`
+      : `<p style="opacity:0.7;font-size:0.9em;margin:0.3em 0">${clean}</p>`;
+  }).join('');
+}
+
+function generateSlideHTML(slide, idx, total, d, a, standalone=false) {
+  const isLight = d.bgTheme === 'light';
+  const p = d.colorPrimary, s = d.colorSecondary;
+  const pRgb = hexToRgb(p), sRgb = hexToRgb(s);
+
+  let bgStyle = '';
+  let textColor = isLight ? '#1a1a2e' : '#f0eff4';
+  let textMuted = isLight ? '#555' : '#aaa9b8';
+
+  if (d.bgTheme === 'dark') {
+    bgStyle = `background: #0f0f15;`;
+  } else if (d.bgTheme === 'light') {
+    bgStyle = `background: #f8f8fc;`;
+  } else if (d.bgTheme === 'gradient') {
+    bgStyle = `background: linear-gradient(135deg, ${p}22 0%, ${s}22 100%); background-color: #0f0f15;`;
+    textColor = '#f0eff4'; textMuted = '#aaa9b8';
+  } else if (d.bgTheme === 'glass') {
+    bgStyle = `background: linear-gradient(135deg, rgba(${pRgb},0.15) 0%, rgba(${sRgb},0.15) 100%); backdrop-filter: blur(20px);`;
+    textColor = '#f0eff4'; textMuted = '#aaa9b8';
+  }
+
+  const fontStack = getFontStack(d.fontFamily);
+  const progress = ((idx+1)/total)*100;
+  const contentAnim = a.content;
+  const animClass = contentAnim !== 'none' ? contentAnim : '';
+
+  const animCSS = `
+    @keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+    @keyframes riseUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+    @keyframes popIn{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
+    .anim-stagger>*{opacity:0;animation:fadeIn 0.5s cubic-bezier(.16,1,.3,1) forwards}
+    .anim-stagger>*:nth-child(1){animation-delay:0.1s}
+    .anim-stagger>*:nth-child(2){animation-delay:0.25s}
+    .anim-stagger>*:nth-child(3){animation-delay:0.4s}
+    .anim-stagger>*:nth-child(4){animation-delay:0.55s}
+    .anim-rise>*{opacity:0;animation:riseUp 0.55s cubic-bezier(.16,1,.3,1) forwards}
+    .anim-rise>*:nth-child(1){animation-delay:0.05s}
+    .anim-rise>*:nth-child(2){animation-delay:0.2s}
+    .anim-rise>*:nth-child(3){animation-delay:0.35s}
+    .anim-pop>*{opacity:0;animation:popIn 0.45s cubic-bezier(.34,1.56,.64,1) forwards}
+    .anim-pop>*:nth-child(1){animation-delay:0.05s}
+    .anim-pop>*:nth-child(2){animation-delay:0.2s}
+    .anim-pop>*:nth-child(3){animation-delay:0.35s}
+  `;
+
+  const animAttr = animClass ? ` class="anim-${animClass}"` : '';
+
+  let content = '';
+  const lines = (slide.subtitle || '').split('\n').filter(Boolean);
+
+  if (slide.type === 'cover') {
+    content = `
+      <div class="slide cover-slide"${animAttr}>
+        <div class="cover-eyebrow">${d.brandName}</div>
+        <h1 class="cover-title" style="font-size:${Math.round(d.titleSize * 1.15)}px;color:${textColor}">${slide.title}</h1>
+        <div class="cover-subtitle" style="color:${textMuted}">${(slide.subtitle||'').replace(/\n/g,'<br>')}</div>
+        <div class="cover-line" style="background:linear-gradient(90deg,${p},${s})"></div>
+      </div>`;
+  } else if (slide.type === 'title') {
+    content = `
+      <div class="slide title-slide"${animAttr}>
+        <div class="section-label" style="color:${p}">Seksi</div>
+        <h1 class="main-title" style="font-size:${d.titleSize}px;color:${textColor}">${slide.title}</h1>
+        <p class="main-sub" style="color:${textMuted}">${(slide.subtitle||'').replace(/\n/g,'<br>')}</p>
+      </div>`;
+  } else if (slide.type === 'bullets') {
+    const hasBullets = lines.some(l => /^[•\-]/.test(l.trim()));
+    content = `
+      <div class="slide content-slide"${animAttr}>
+        <h2 class="slide-heading" style="font-size:${Math.round(d.titleSize*0.65)}px;color:${textColor}">${slide.title}</h2>
+        <div class="slide-accent-line" style="background:linear-gradient(90deg,${p},${s})"></div>
+        <div class="bullets-wrap" style="color:${textColor}">
+          ${hasBullets ? renderBullets(slide.subtitle||'') : `<p style="color:${textMuted};line-height:1.7;font-size:1.05em">${(slide.subtitle||'').replace(/\n/g,'<br>')}</p>`}
+        </div>
+      </div>`;
+  } else if (slide.type === 'two-col') {
+    content = `
+      <div class="slide two-col-slide"${animAttr}>
+        <h2 class="slide-heading" style="font-size:${Math.round(d.titleSize*0.6)}px;color:${textColor};grid-column:1/-1">${slide.title}</h2>
+        <div class="col" style="color:${textMuted}">${renderBullets(slide.subtitle||'') || (slide.subtitle||'').replace(/\n/g,'<br>')}</div>
+        <div class="col col-right" style="color:${textMuted};border-color:${p}33">${renderBullets(slide.col2||'') || (slide.col2||'').replace(/\n/g,'<br>')}</div>
+      </div>`;
+  } else if (slide.type === 'quote') {
+    content = `
+      <div class="slide quote-slide"${animAttr}>
+        <div class="quote-mark" style="color:${p}">❝</div>
+        <blockquote class="quote-text" style="font-size:${Math.round(d.titleSize*0.7)}px;color:${textColor}">${slide.title}</blockquote>
+        <cite class="quote-author" style="color:${textMuted}">${slide.subtitle}</cite>
+      </div>`;
+  } else if (slide.type === 'closing') {
+    content = `
+      <div class="slide closing-slide"${animAttr}>
+        <div class="closing-deco" style="background:linear-gradient(135deg,${p},${s})"></div>
+        <h1 class="closing-title" style="font-size:${Math.round(d.titleSize*1.1)}px;color:${textColor}">${slide.title}</h1>
+        <p class="closing-sub" style="color:${textMuted}">${(slide.subtitle||'').replace(/\n/g,'<br>')}</p>
+        <div class="closing-brand" style="color:${textMuted}">${d.brandName}</div>
+      </div>`;
+  }
+
+  const decorators = d.decorative ? `
+    <div class="deco-orb deco-1" style="background:radial-gradient(circle,${p}33,transparent 70%)"></div>
+    <div class="deco-orb deco-2" style="background:radial-gradient(circle,${s}22,transparent 70%)"></div>
+  ` : '';
+
+  const logoHTML = d.showLogo && d.logoUrl ? `<img src="${d.logoUrl}" class="slide-logo" alt="logo" onerror="this.style.display='none'">` : (d.showLogo ? `<span class="slide-brand-text" style="color:${p}">${d.brandName}</span>` : '');
+  const numHTML = d.slideNumbers ? `<div class="slide-number" style="color:${textMuted}">${idx+1} / ${total}</div>` : '';
+  const progressHTML = d.progressBar ? `<div class="progress-bar"><div class="progress-fill" style="width:${progress}%;background:linear-gradient(90deg,${p},${s})"></div></div>` : '';
+
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+  font-family:${fontStack};
+  ${bgStyle}
+  display:flex;flex-direction:column;
+  position:relative;
+  overflow:hidden;
+}
+${animCSS}
+.deco-orb{position:absolute;border-radius:50%;pointer-events:none}
+.deco-1{width:50vw;height:50vw;top:-15vw;right:-10vw;opacity:0.6}
+.deco-2{width:40vw;height:40vw;bottom:-12vw;left:-8vw;opacity:0.5}
+.slide-chrome{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:16px 28px;z-index:10}
+.slide-logo{height:28px;max-width:120px;object-fit:contain;filter:${isLight?'none':'brightness(1.1)'};}
+.slide-brand-text{font-size:14px;font-weight:600;letter-spacing:-0.3px}
+.slide-number{font-size:12px;font-weight:500;opacity:0.5}
+.progress-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(128,128,128,0.15)}
+.progress-fill{height:100%;transition:width 0.4s ease}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:5% 7%;z-index:5;color:${textColor}}
+
+/* COVER */
+.cover-slide{align-items:flex-start}
+.cover-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:0.45;margin-bottom:20px}
+.cover-title{font-weight:600;line-height:1.1;letter-spacing:-1.5px;margin-bottom:20px;max-width:80%}
+.cover-subtitle{font-size:1.1em;opacity:0.6;margin-bottom:28px;line-height:1.6;max-width:60%}
+.cover-line{height:3px;width:72px;border-radius:2px}
+
+/* TITLE */
+.title-slide{align-items:center;text-align:center}
+.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.main-title{font-weight:600;line-height:1.1;letter-spacing:-1px;margin-bottom:18px}
+.main-sub{font-size:1.05em;opacity:0.6;line-height:1.7;max-width:65%}
+
+/* CONTENT */
+.content-slide{align-items:flex-start;justify-content:flex-start;padding-top:9%}
+.slide-heading{font-weight:600;letter-spacing:-0.5px;margin-bottom:12px;line-height:1.2}
+.slide-accent-line{height:3px;width:48px;border-radius:2px;margin-bottom:22px}
+.bullets-wrap{display:flex;flex-direction:column;gap:12px;max-width:75%}
+.bullet-item{display:flex;align-items:flex-start;gap:12px;font-size:1.05em;line-height:1.5}
+.bullet-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,${p},${s});flex-shrink:0;margin-top:0.4em}
+
+/* TWO COL */
+.two-col-slide{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;padding-top:9%}
+.col{display:flex;flex-direction:column;gap:10px;font-size:0.95em;line-height:1.6}
+.col-right{padding-left:24px;border-left:2px solid}
+
+/* QUOTE */
+.quote-slide{align-items:center;text-align:center}
+.quote-mark{font-size:72px;line-height:1;margin-bottom:-10px;opacity:0.5}
+.quote-text{font-weight:500;line-height:1.3;font-style:italic;max-width:75%;margin:0 auto 20px}
+.quote-author{font-size:0.9em;letter-spacing:0.5px;font-style:normal;opacity:0.6}
+
+/* CLOSING */
+.closing-slide{align-items:center;text-align:center}
+.closing-deco{width:80px;height:80px;border-radius:24px;margin-bottom:28px;opacity:0.15}
+.closing-title{font-weight:600;line-height:1.1;letter-spacing:-1px;margin-bottom:16px}
+.closing-sub{font-size:1em;opacity:0.55;line-height:1.7;margin-bottom:24px}
+.closing-brand{font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:0.3}
+</style>
+</head>
+<body>
+${decorators}
+<div class="slide-chrome">${logoHTML}${numHTML}</div>
+${content}
+${progressHTML}
+</body>
+</html>`;
+}
+
+function renderPreview() {
+  const s = state.slides[state.currentSlide];
+  const html = generateSlideHTML(s, state.currentSlide, state.slides.length, state.design, state.animation);
+  const iframe = document.getElementById('slidePreview');
+  iframe.srcdoc = html;
+}
+
+// ─── FULLSCREEN PREVIEW ───────────────────────────────────────────────────────
+function previewFullscreen() {
+  const allHTML = generateFullPresentation();
+  const w = window.open('', '_blank');
+  w.document.write(allHTML);
+  w.document.close();
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function generateFullPresentation() {
+  const d = state.design, a = state.animation;
+  const allSlides = state.slides.map((s,i) => generateSlideHTML(s,i,state.slides.length,d,a,true));
+  const dur = a.duration;
+
+  let transCSS = '';
+  let transJS = '';
+
+  if (a.transition === 'fade') {
+    transCSS = `.slide-wrap{opacity:0;transition:opacity ${dur}ms ease}.slide-wrap.active{opacity:1}`;
+    transJS = `
+      function doTransition(oldEl, newEl) {
+        oldEl.style.opacity='0';
+        oldEl.style.transition='opacity ${dur}ms ease';
+        setTimeout(()=>{
+          oldEl.classList.remove('active');oldEl.style.display='none';oldEl.style.opacity='';
+          newEl.style.display='block';newEl.style.opacity='0';
+          requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.opacity='1'; newEl.style.transition='opacity ${dur}ms ease'; newEl.classList.add('active'); }));
+        },${dur});
+      }`;
+  } else if (a.transition === 'slide') {
+    transJS = `
+      function doTransition(oldEl, newEl, dir) {
+        const sign = dir > 0 ? '' : '-';
+        oldEl.style.transform='translateX(0)';oldEl.style.transition='transform ${dur}ms cubic-bezier(.4,0,.2,1)';
+        oldEl.style.transform=\`translateX(\${dir>0?'-':''}100%)\`;
+        newEl.style.transform=\`translateX(\${dir>0?'':'- '}100%)\`;newEl.style.display='block';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.transform='translateX(0)';newEl.style.transition='transform ${dur}ms cubic-bezier(.4,0,.2,1)';newEl.classList.add('active'); }));
+        setTimeout(()=>{ oldEl.classList.remove('active');oldEl.style.display='none';oldEl.style.transform='';oldEl.style.transition=''; },${dur});
+      }`;
+  } else if (a.transition === 'zoom') {
+    transJS = `
+      function doTransition(oldEl, newEl) {
+        oldEl.style.transform='scale(1)';oldEl.style.opacity='1';oldEl.style.transition='all ${dur}ms ease';
+        oldEl.style.transform='scale(1.06)';oldEl.style.opacity='0';
+        newEl.style.transform='scale(0.95)';newEl.style.opacity='0';newEl.style.display='block';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.transform='scale(1)';newEl.style.opacity='1';newEl.style.transition='all ${dur}ms ease';newEl.classList.add('active'); }));
+        setTimeout(()=>{ oldEl.classList.remove('active');oldEl.style.display='none';oldEl.style.transform='';oldEl.style.opacity='';oldEl.style.transition=''; },${dur});
+      }`;
+  } else if (a.transition === 'flip') {
+    transCSS = `.slide-wrap{backface-visibility:hidden;perspective:1000px}`;
+    transJS = `
+      function doTransition(oldEl, newEl) {
+        oldEl.style.transition='transform ${dur}ms ease';oldEl.style.transformOrigin='center';
+        oldEl.style.transform='rotateY(90deg)';
+        setTimeout(()=>{ oldEl.classList.remove('active');oldEl.style.display='none';oldEl.style.transform='';
+          newEl.style.display='block';newEl.style.transform='rotateY(-90deg)';newEl.style.transition='transform ${dur}ms ease';
+          requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.transform='rotateY(0)';newEl.classList.add('active'); }));
+        },${dur/2});
+      }`;
+  } else if (a.transition === 'reveal') {
+    transJS = `
+      function doTransition(oldEl, newEl) {
+        newEl.style.clipPath='inset(0 100% 0 0)';newEl.style.display='block';newEl.style.transition='clip-path ${dur}ms cubic-bezier(.4,0,.2,1)';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.clipPath='inset(0 0% 0 0)';newEl.classList.add('active'); }));
+        setTimeout(()=>{ oldEl.classList.remove('active');oldEl.style.display='none'; },${dur});
+      }`;
+  } else {
+    transJS = `function doTransition(oldEl, newEl) { oldEl.classList.remove('active');oldEl.style.display='none';newEl.style.display='block';newEl.classList.add('active'); }`;
+  }
+
+  const autoJS = a.autoAdvance > 0 ? `setInterval(()=>{ if(cur<slides.length-1) go(cur+1); },${a.autoAdvance*1000});` : '';
+
+  const speakerNotes = state.slides.map((s,i) => s.speaker ? `Slide ${i+1}: ${s.speaker}` : null).filter(Boolean).join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${state.slides[0]?.title || 'Presentasi'}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#000}
+.slide-wrap{position:fixed;inset:0;display:none}
+.slide-wrap.active{display:block}
+.slide-wrap iframe{width:100%;height:100%;border:none}
+.nav-overlay{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:999;opacity:0;transition:opacity 0.3s}
+body:hover .nav-overlay{opacity:1}
+.nav-b{padding:8px 20px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-size:13px;cursor:pointer;font-family:sans-serif;backdrop-filter:blur(8px)}
+.nav-b:hover{background:rgba(255,255,255,0.15)}
+.slide-pos{padding:8px 16px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-size:12px;display:flex;align-items:center;font-family:sans-serif;backdrop-filter:blur(8px)}
+${transCSS}
+</style>
+</head>
+<body>
+${allSlides.map((html, i) => `<div class="slide-wrap${i===0?' active':''}" id="s${i}"><iframe srcdoc="${html.replace(/"/g,'&quot;')}" title="Slide ${i+1}"></iframe></div>`).join('\n')}
+<div class="nav-overlay">
+  <button class="nav-b" onclick="go(cur-1)" id="prevB">← Prev</button>
+  <span class="slide-pos" id="pos">1 / ${state.slides.length}</span>
+  <button class="nav-b" onclick="go(cur+1)" id="nextB">Next →</button>
+</div>
+<script>
+let cur=0;
+const slides=document.querySelectorAll('.slide-wrap');
+${transJS}
+function go(n){
+  if(n<0||n>=slides.length)return;
+  const dir=n>cur?1:-1;
+  try{doTransition(slides[cur],slides[n],dir);}catch(e){slides[cur].classList.remove('active');slides[cur].style.display='none';slides[n].style.display='block';slides[n].classList.add('active');}
+  cur=n;
+  document.getElementById('pos').textContent=(cur+1)+' / '+slides.length;
+  document.getElementById('prevB').style.opacity=cur===0?0.3:1;
+  document.getElementById('nextB').style.opacity=cur===slides.length-1?0.3:1;
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='Space'||e.key==='PageDown')go(cur+1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp')go(cur-1);
+  if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+});
+${autoJS}
+<\/script>
+${speakerNotes ? `<!-- CATATAN SPEAKER:\n${speakerNotes}\n-->` : ''}
+</body>
+</html>`;
+}
+
+function exportHTML() {
+  const html = generateFullPresentation();
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (state.slides[0]?.title || 'presentasi').toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-') + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('File berhasil diunduh! (Tekan F untuk fullscreen)', '✅');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, icon='✅') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.querySelector('.toast-icon').textContent = icon;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  renderSlideList();
+  loadSlideToEditor();
+  updateDesign();
+  renderPreview();
+}
+
+init();
+</script>
+</body>
+</html>
